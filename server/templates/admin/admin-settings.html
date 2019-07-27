@@ -1,0 +1,53 @@
+{% extends "admin/_page-admin.html" %}
+{% import "_macros-form.html" as formMacros %}
+
+{% block adminBody %}
+
+<h1>Paramétres</h1>
+{% if editSetting %}
+<form action="/admin/settings" method="post">
+  {{ csrfToken() | safe }}
+  <div class="form-group">
+    <label for="key">Clé</label>
+    <p>{{ editSetting.key }}</p>
+    <input type="hidden" name="key" value="{{ editSetting.key }}" class="form-control" />
+  </div>
+  <div class="form-group">
+    <label for="value">Valeur</label>
+    <textarea name="value" class="form-control {{ 'json-setting codemirror' if editSetting.jsonSetting }}">{{ editSetting.value }}</textarea>
+  </div>
+  <div class="form-group">
+    <input type="submit" class="btn btn-primary" value="Sauvegarder" />
+  </div>
+</form>
+{% endif %}
+
+<table class="table">
+<thead>
+  <th>Clé</th>
+  <th>Valeur</th>
+</thead>
+<tbody>
+  {% for setting in settings %}
+  <tr>
+    <td>{{ setting.key }}</td>
+    <td>
+      {% if constants.JSON_EDIT_SETTINGS.indexOf(setting.key) !== -1 %}
+        <textarea class="codemirror" readonly>{{ setting.value }}</textarea>
+      {% elseif setting.value %}
+        <code style="max-width: 500px">{{ setting.value }}</code>
+      {% else %}
+        <i>(empty)</i>
+      {% endif %}
+    </td>
+    <td><a class="btn btn-primary btn-sm" href="?edit={{ setting.key }}">Modifier</a></td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+
+{% endblock %}
+
+{% block scripts %} 
+  {{ formMacros.codeMirrorScripts() }}
+{% endblock %}

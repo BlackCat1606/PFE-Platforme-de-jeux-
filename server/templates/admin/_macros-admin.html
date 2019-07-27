@@ -1,0 +1,30 @@
+{% macro moderationBar(context, isAdmin) %}
+<div class="moderation-bar">
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-12">
+        <a href="/admin" class="btn"><span class="fas fa-wrench"></span> Tableau de bord Modérateur</a>
+        
+        {{ moderationLink('Modifier l\'événement', 'calendar', buildUrl(context.event, 'event', 'edit')) if context.event.id and (not context.featuredEvent or context.event.id != context.featuredEvent.id) }}
+        {{ moderationLink('Modifier l\'événement en vedette', 'calendar', buildUrl(context.featuredEvent, 'event', 'edit')) if context.featuredEvent.id }}
+        {{ moderationLink('Créer un évenement', 'calendar', buildUrl(null, 'event', 'template')) if context.path === '/events' }}
+
+        {{ moderationLink('Créer une annonce', 'pencil-alt', buildUrl(null, 'post', 'create', { eventId: context.event.id, specialPostType: 'announcement' })) if context.event.id }}
+        
+        {{ moderationLink('Modifier la publication', 'pencil-alt', buildUrl(context.post, 'post', 'edit')) if context.post.id }}
+        {{ moderationLink('Modifier la soumission', 'chess-rook', buildUrl(context.entry, 'entry', 'edit')) if context.entry.id }}
+		
+        {% if isAdmin %}
+			{{ moderationLink('Modifier l\'utilisateur', 'user', buildUrl(context.profileUser, 'user', 'settings', {dashboardAdminMode: true})) if context.profileUser }}
+			{{ moderationLink('Modifier l\'utilisateur', 'user', buildUrl(context.dashboardUser, 'user', 'settings', {dashboardAdminMode: true})) if context.dashboardUser }}
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro moderationLink(label, icon, url) %}
+  <a href="{{ url }}" class="btn"><span class="fas fa-{{ icon }}"></span> {{ label }}</a>
+{% endmacro %}

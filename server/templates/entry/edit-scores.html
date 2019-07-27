@@ -1,0 +1,32 @@
+{% extends "_page.html" %}
+{% import "post/_macros-post.html" as postMacros with context %}
+{% import "user/_macros-user.html" as userMacros %}
+{% import "event/_macros-event.html" as eventMacros %}
+{% import "entry/_macros-score.html" as scoreMacros %}
+{% import "_macros-form.html" as formMacros %}
+
+{% block body %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12">
+      <h1><a href="{{ buildUrl(entry, 'entry') }}">{{ entry.get('title') }}</a></h1>
+
+      <h2>Gérer les scores </h2>
+
+      <p>Vous pouvez suspendre ici tout score qui semble invalide. Tout score suspendu ne sera pas supprimé, il n'apparaîtra plus dans les scores les plus élevés.</p>
+
+      <form method="post">
+        {{ csrfToken() | safe }}
+        {{ scoreMacros.highScores(entry, highScoresCollection, null, { showActiveToggles: true, showDates: true }) }}
+        <input type="submit" name="clearall" class="btn btn-danger" onclick="return confirm('Cela effacera effectivement tous les scores. C\'est ici au cas où vous apporteriez des modifications de gameplay rendant toutes les scores obsolètes. Voulez-vous vraiment réinitialiser tous les scores?')" value="Réinitialiser tous les scores" />
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ formMacros.editorScripts() }}
+{% endblock %}

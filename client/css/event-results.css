@@ -1,0 +1,312 @@
+/**
+ * Event results page
+ */
+
+.results-links {
+  margin-bottom: 20px;
+
+  &__division {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 8px 30px;
+    background-color: var(--main);
+  }
+
+  &__category {
+    font-size: 1.2rem;
+    padding: 8px 15px;
+    background-color: var(--main);
+  }
+}
+
+.results-podium {
+  @apply --shadow;
+  background-color: #DDD;
+  margin-bottom: 20px;
+
+  &__event-name {
+    font-size: 1.3rem;
+    text-align: center;
+    background-color: white;
+    padding: 5px;
+    margin: 0;
+  }
+
+  &__title {
+    @apply --alt-font;
+    font-weight: normal;
+    font-size: 2.0rem;
+    text-align: center;
+    background-color: var(--alt);
+    color: white;
+    padding: 10px;
+
+    & .dropdown {
+      display: inline-block;
+    }
+    & .dropdown-toggle {
+      background: none;
+      border: none;
+      border-radius: 4px;
+
+      &:hover {
+        background-color: var(--alt-dark);
+      }
+    }
+  }
+
+  &__counter {
+    @apply --main-font;
+    display: block;
+    font-size: 1.4rem;
+    font-weight: bold;
+  }
+
+  & .results-podium-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    @media (min-width: 768px) {
+      flex-wrap: wrap;
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+
+  &__step {
+    margin: 30px 0 80px 0;
+    @media (max-width: 768px) {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: space-evenly;
+      margin: 10px 0 15px 0;
+    }
+    &::after {
+      @apply --sprite4;
+      background-position: -256px -64px;
+      content: '';
+      display: block;
+      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+      height: 128px;
+      margin: -45px 0 0 -80px;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      width: 160px;
+      @media (max-width: 768px) {
+        position: relative;
+        align-self: center;
+        margin: 0;
+        top:-10px;
+        left: 0;
+      }
+    }
+
+    &.first {
+      margin-top: 15px;
+      padding-bottom: 15px;
+      &::after {
+        margin-top: -50px;
+      }
+    }
+    &.second::after {
+      background-position: -256px -192px;
+    }
+    &.third::after {
+      background-position: -256px -320px;
+    }
+  }
+
+  & .entry-thumb {
+    height: 100%;
+    padding-bottom: 30px;
+    @media (max-width: 768px) {
+      padding-bottom: 0;
+      flex: 1;
+    }
+  }
+  
+  & .unranked {
+    align-self: center;
+    padding-bottom: 15px;
+    & .entry-thumb{
+      padding-bottom: 0px;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    & .first {
+      order:2;
+    }
+    & .second {
+      order:1;
+    }
+    & .third {
+      order:3;
+    }
+  }
+
+  & .tournament-score {
+    margin-top: 10px;
+    margin-bottom: 45px;
+    @media (max-width: 768px) {
+      margin-bottom:0;
+    }
+  }
+}
+
+/* Results on entry page */
+.entry-results {
+  @apply --shadow;
+  background-color: var(--borders);
+  margin-bottom: 20px;
+
+  &__header {
+    padding: 10px;
+    background-color: var(--main);
+    color: white;
+  }
+
+  &__body {
+    padding: 10px;
+    padding-top: 0;
+  }
+
+  &__category {
+    padding-top: 5px;
+    font-size: 1.2rem;
+  }
+
+  &__category-title {
+    display: inline-block;
+    width: 120px;
+  }
+
+  &__category-ranking {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    position: relative;
+    vertical-align: middle;
+    width: 7rem;
+    text-align: right;
+    margin-right: 15px;
+  }
+
+  &__category-medal {
+    @apply --sprite2;
+    display: inline-block;
+    height: 32px;
+    position: absolute;
+    right: 50px;
+    top: 0;
+    width: 32px;
+
+    /* Neutral medals */
+    &.medal1 {
+      background-position: -64px -112px;
+    }
+    &.medal2 {
+      background-position: -64px -144px;
+    }
+    &.medal3 {
+      background-position: -64px -176px;
+    }
+
+    /* Per-rating-category medals */
+    /* TODO once we have SCSS support, it can be simplified to:
+    $medal-category-y: -240px -273px -307px -341px -375px -409px;
+    $medal-ranking-x: -133px -167px -201px;
+    @for $category from 1 through length($medal-category-y) {
+      @for $ranking from 1 through length($medal-ranking-x) {
+        .medal-category-#{$category}.medal-ranking-#{$ranking} {
+          background-position: nth($medal-ranking-x, $ranking) nth($medal-category-y, $category);
+        }
+      }
+    }
+    */
+    &.medal-category-1.medal-ranking-1 {
+      background-position: -133px -240px;
+    }
+    &.medal-category-1.medal-ranking-2 {
+      background-position: -167px -240px;
+    }
+    &.medal-category-1.medal-ranking-3 {
+      background-position: -201px -240px;
+    }
+    &.medal-category-2.medal-ranking-1 {
+      background-position: -133px -273px;
+    }
+    &.medal-category-2.medal-ranking-2 {
+      background-position: -167px -273px;
+    }
+    &.medal-category-2.medal-ranking-3 {
+      background-position: -201px -273px;
+    }
+    &.medal-category-3.medal-ranking-1 {
+      background-position: -133px -307px;
+    }
+    &.medal-category-3.medal-ranking-2 {
+      background-position: -167px -307px;
+    }
+    &.medal-category-3.medal-ranking-3 {
+      background-position: -201px -307px;
+    }
+    &.medal-category-4.medal-ranking-1 {
+      background-position: -133px -341px;
+    }
+    &.medal-category-4.medal-ranking-2 {
+      background-position: -167px -341px;
+    }
+    &.medal-category-4.medal-ranking-3 {
+      background-position: -201px -341px;
+    }
+    &.medal-category-5.medal-ranking-1 {
+      background-position: -133px -375px;
+    }
+    &.medal-category-5.medal-ranking-2 {
+      background-position: -167px -375px;
+    }
+    &.medal-category-5.medal-ranking-3 {
+      background-position: -201px -375px;
+    }
+    &.medal-category-6.medal-ranking-1 {
+      background-position: -133px -409px;
+    }
+    &.medal-category-6.medal-ranking-2 {
+      background-position: -167px -409px;
+    }
+    &.medal-category-6.medal-ranking-3 {
+      background-position: -201px -409px;
+    }
+  }
+
+  &__category-rating {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    vertical-align: middle;
+    width: 3rem;
+    text-align: center;
+    margin-right: 12px;
+  }
+
+  &__category-stars {
+    display: inline-block;
+    font-size: 1rem;
+
+    & .fas,
+    & .far,
+    & .fab {
+      font-size: 1.4rem;
+      width: 1.7rem;
+    }
+  }
+  @media (min-width: 992px) and (max-width: 1199px) {
+    &__category-stars .fas,
+    &__category-stars .far,
+    &__category-stars .fab {
+      width: 1.4rem;
+    }
+  }
+}

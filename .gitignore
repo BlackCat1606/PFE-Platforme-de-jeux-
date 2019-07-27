@@ -1,0 +1,27 @@
+# Local files
+node_modules/
+config.js
+
+# Generated output
+dist/
+
+# Docs
+docs/
+
+# Data
+data/
+coverage/
+cypress/tmp
+*.log
+*.out
+*.pid
+*.backup
+
+# OS-specific garbage
+.DS_Store
+*~
+
+# Misc
+.vscode
+yarn.lock
+.nyc_output

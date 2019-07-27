@@ -1,0 +1,92 @@
+{% extends "event/_page-edit-event.html" %}
+{% import "_macros-form.html" as formMacros %}
+{% import "event/_macros-event.html" as eventMacros %}
+
+{% macro userTitle(usersById, userId) %}
+  {% if usersById[userId] %}
+    {{ usersById[userId].get('title') or usersById[userId].get('name') }}
+  {% else %}
+   non-entrant of ID {{ userId }}
+  {% endif %} 
+{% endmacro %}
+
+{% block editEventBody %}
+
+<h1>{{ event.get('title') }} soumissions <span class="count">({{ entries.length }})</span></h1>
+
+{% if detailedEntryInfo.id %}
+<div class="well">
+  {% set entry = entriesById[detailedEntryInfo.id] %}
+  <h2>Karma details: {{ entry.get('title') }}</h2>
+
+  <p>Karma Actuel: <strong>{{ detailedEntryInfo.total }}</strong></p>
+
+  <h4>Donné <span class="count">(+{{ detailedEntryInfo.given.total }})</span></h4>
+
+  <ul>
+  {% for key, data in detailedEntryInfo.given.givenByUserAndEntry %}
+    <li>
+    {% if data.commentKarma > 0 %}
+      <strong>+ {{ data.commentKarma or '0' }}</strong> avec des commentaires par {{ userTitle(usersById, data.userId) }}
+        sur {{ entriesById[data.entryId].get('title') if entriesById[data.entryId] else '???' }}
+    {% endif %}
+    {{ ' or ' if data.commentKarma and data.voteKarma }}
+    {% if data.voteKarma > 0 %}
+      <strong>+ {{ data.voteKarma or '0' }}</strong> avec des votes par {{ userTitle(usersById, data.userId) }}
+        sur {{ entriesById[data.entryId].get('title') if entriesById[data.entryId] else '???' }}
+    {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+
+  <h4>Reçu <span class="count">(-{{ detailedEntryInfo.received.total }})</span></h4>
+
+  <ul>
+  {% for userId, data in detailedEntryInfo.received.receivedByUser %}
+    <li>
+    {% if data.commentKarma > 0 %}
+      <strong>- {{ data.commentKarma or '0' }}</strong> avec des commentaires par {{ userTitle(usersById, userId) }}
+    {% endif %}
+    {{ ' or ' if data.commentKarma and data.voteKarma }}
+    {% if data.voteKarma > 0 %}
+      <strong>- {{ data.voteKarma or '0' }}</strong> avec des votes par {{ userTitle(usersById, userId) }}
+    {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<p>
+  <a href="?orderBy=karma" class="btn btn-default">Ordonner par Karma</a>
+  <a href="?orderBy=ratingCount" class="btn btn-default">Ordonner par nombre de notes</a>
+</p>
+
+<ol>
+<table class="table">
+<tr>
+<th></th>
+<th>Jeu</th>
+<th>Division</th>
+<th>Karma</th>
+<th>Votes</th>
+<th>Actions</th>
+</tr>
+{% for entry in entries %}
+  <tr>
+    <td>
+      <li></li>
+    </td>
+    <td>
+      {{ eventMacros.entrySmallThumb(entry) }}
+    </td>
+    <td>{{ entry.get('division') | capitalize }}</td>
+    <td>{{ entry.get('karma') }}</td>
+    <td>{{ entry.related('details').get('rating_count') if entry.get('division') !== 'unranked' else 'N.A.' }}</td>
+    <td><a href="?entryDetails={{ entry.get('id') }}&amp;orderBy={{ orderBy }}" class="btn btn-default">Détails</a></td>
+  </tr>
+{% endfor %}
+</table>
+</ol>
+
+{% endblock %}

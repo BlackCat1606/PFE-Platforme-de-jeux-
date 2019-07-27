@@ -1,0 +1,42 @@
+{% extends "user/_page-dashboard.html" %}
+{% import "post/_macros-post.html" as postMacros with context %}
+{% import "_macros-form.html" as formMacros %}
+
+{% block dashboardBody %}
+
+<h1>Publications</h1>
+
+<div class="row">
+  <div class="col-lg-10">
+
+  <div class="form-group">
+    <a href="{{ buildUrl(null, 'post', 'create', {eventId: newPostEvent.get('id')}) if newPostEvent }}" class="btn btn-primary">Créer une publication</a>
+  </div>
+
+  {% if draftPosts.length > 0 %}
+    <h2>Brouillons</h2>
+    {% for post in draftPosts %}
+      <div class="expandable">
+        {{ postMacros.post(post, { allowMods: true, readingUser: user, readingUserLikes: {} }) }}
+        {{ formMacros.expandCollapse() }}
+      </div>
+    {% endfor %}
+
+    <h2>Publiées</h2>
+  {% endif %}
+
+  {% for post in publishedPosts %}
+    <div class="expandable">
+      {{ postMacros.post(post, { allowMods: true, readingUser: user, readingUserLikes: {} }) }}
+      {{ formMacros.expandCollapse() }}
+    </div>
+  {% endfor %}
+
+  {% if publishedPosts.length === 0 %}
+    <div class="well">Pas de publications pour le moment.</div>
+  {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}

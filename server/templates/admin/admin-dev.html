@@ -1,0 +1,30 @@
+{% extends "admin/_page-admin.html" %} {% block adminBody %}
+
+<h1>Outils de développement</h1>
+
+<form method="post">
+  {{ csrfToken() | safe }}
+
+  <div class="form-group">
+    <input type="submit" name="replace-passwords" class="btn btn-danger" onclick="return confirm('Remplacer les mots de passe?')" value="Remplacer les MDP" /> Définit des mots de passe simples sur de nombreux comptes pour faciliter leur journalisation.
+  </div>
+  <div class="form-group">
+    <input type="submit" name="db-reset" class="btn btn-danger" onclick="return confirm('Réinitialiser toute la base de données?')" value="Réinitialiser la base de données" />vide puis régénère la base de données, en recréant des échantillons en fonction de votre configuration locale.
+  </div>
+  
+  {% if config.DB_TYPE === "sqlite3" %}
+    <div class="form-group">
+      <input type="submit" name="backup" class="btn btn-danger" value="Sauvegarder la BD" /> Sauvegarder la BD (SQLite seulement)
+    </div>
+    {% if backupDate %}
+      <div class="form-group">
+        <input type="submit" name="restore" class="btn btn-danger" value="Restore la sauvegarde" />
+        <input type="submit" name="delete-backup" class="btn btn-danger" value="Supprimer la sauvegarde" />
+        Date de sauvegarde: <b>{{ backupDate | dateTime }}</b>
+      </div>
+    {% endif %}
+  {% endif %}
+</form>
+
+
+{% endblock %}

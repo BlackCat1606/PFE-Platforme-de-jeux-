@@ -1,0 +1,48 @@
+{% extends "admin/_page-admin.html" %}
+
+{% block adminBody %}
+
+<h1>Événements</h1>
+
+<a href="{{ buildUrl(null, 'event', 'create') }}" class="btn btn-primary">Créer</a> 
+{% if user.get('is_admin') %}
+  <a class="btn btn-default" href="/admin/settings?edit=featured_event_name">Changer l'événement en vedette</a>
+{% endif %}
+
+<table class="table" style="margin-top: 10px">
+<thead>
+  <th>Titre</th>
+  <th>Statut</th>
+  <th>Theme</th>
+  <th>Soumissions</th>
+  <th>Resultats</th>
+  <th></th>
+</thead>
+<tbody>
+  {% for event in events %}
+  <tr>
+    <td><a href="{{ buildUrl(event, 'event') }}">{{ event.get('title') }}</a></td>
+    <td><span class="label label-default">{{ event.get('status') }}</span></td>
+    <td>{{ status(event.get('status_theme')) }}</td>
+    <td>{{ status(event.get('status_entry')) }}</td>
+    <td>{{ status(event.get('status_results')) }}</td>
+    <td><a class="btn btn-primary btn-sm" href="{{ buildUrl(event, 'event', 'edit') }}">Modifier</a></td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+
+{% endblock %}
+
+{% macro status(value) %}
+  {% if value === 'open' or value === 'on' %}
+    {% set class = 'info' %}
+  {% elseif value === 'off' %}
+    {% set class = 'warning' %}
+  {% elseif value === 'disabled' %}
+    {% set class = '' %}
+  {% else %}
+    {% set class = 'default' %}
+  {% endif %}
+  <span class="label label-{{ class }}">{{ value }}</span>
+{% endmacro %}

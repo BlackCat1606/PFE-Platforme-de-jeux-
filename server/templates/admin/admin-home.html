@@ -1,0 +1,33 @@
+{% extends "admin/_page-admin.html" %}
+{% import "post/_macros-post.html" as postMacros with context %}
+
+{% block adminBody %}
+
+<h1>Annonces</h1>
+
+<div class="form-group">
+  {% if featuredEvent %}
+    <a href="{{ buildUrl(null, 'post', 'create', { eventId: featuredEvent.id, specialPostType: 'announcement' }) }}" class="btn btn-warning">Créer  (sur l'évenement vedette <b>{{ featuredEvent.get('title') }}</b>)</a>
+  {% endif %}
+  <a href="{{ buildUrl(null, 'post', 'create', { specialPostType: 'announcement' }) }}" class="btn btn-warning">Créer (pas d'évenement)</a>
+  <a href="{{ buildUrl(null, 'post', 'create', { specialPostType: 'hidden' }) }}" class="btn btn-warning">Créer une publication cachée</a>
+</div>
+
+{% if draftPosts.length > 0 %}
+  <h2>Brouillons</h2>
+  {% for post in draftPosts %}
+    {{ postMacros.post(post, {allowMods: true, hideBody: true, readingUser: user, readingUserLikes: userLikes }) }}
+  {% endfor %}
+
+  <h2>Publié</h2>
+{% endif %}
+
+{% for post in publishedPosts %}
+  {{ postMacros.post(post, {allowMods: true, hideBody: true, readingUser: user, readingUserLikes: userLikes }) }}
+{% endfor %}
+
+{% if publishedPosts.length === 0 %}
+  <div class="well">Rien pour le moment!</div>
+{% endif %}
+
+{% endblock %}

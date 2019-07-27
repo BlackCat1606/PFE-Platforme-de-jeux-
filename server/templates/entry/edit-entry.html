@@ -1,0 +1,379 @@
+{% extends "_page.html" %}
+{% import "_macros-form.html" as formMacros %}
+{% import "_macros-games-search.html" as gamesSearchMacros %}
+
+{% block styles %}
+<style type="text/css">
+#edit-team .select2.select2-container {
+  width: 200px;
+}
+#edit-team .select2-selection__choice.owner .select2-selection__choice__remove {
+  display: none;
+}
+#edit-team .select2-search-choice-close {
+  left: 6px !important;
+  top: 14px;
+}
+.member .select2-search-choice-close {
+  left: 6px !important;
+  top: 14px;
+}
+.member .select2-search-choice {
+  padding-bottom: 2px !important;
+}
+.edit-team-dropdown .select2-result {
+  height: 42px;
+}
+
+.member {
+  font-size: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 4px;
+  margin-left: 0;
+  width: 100%;
+}
+.member-avatar, .member-info {
+  vertical-align: top;
+  display: inline-block;
+}
+.member-avatar .avatar {
+  width: 36px;
+  border-radius: 6px;
+  vertical-align: middle;
+  text-align: center;
+  margin-right: 8px;
+  margin-left: 2px;
+}
+.member-info .username {
+  display: inline-block;
+  margin-top: 2px;
+}
+.member-info .tag {
+  display: block;
+  font-size: 10px;
+  color: #666;
+  margin-top: -4px;
+}
+.member-info .unavailable-tag {
+  display: none !important;
+}
+.select2-results__option[aria-disabled=true] .member-info .unavailable-tag {
+  display: block !important;
+  margin-top: -5px;
+}
+.select2-results__option.loading-results[aria-disabled=true] .member-info .unavailable-tag {
+  display: none !important;
+}
+
+/* Select2 hack to support locking tags from deletion (not supported yet in v4) */
+.select2-locked .select2-selection__choice__remove {
+  display: none !important;
+}
+.select2-results__option[aria-selected="true"] {
+  display: none;
+}
+
+.platform {
+  margin-top: 2px;
+}
+
+#result-msg.error {
+  color: red;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% set entryDetails = entry.related('details') %}
+<div class="container">
+  <form id="js-edit-entry-form" action="{{ buildUrl(entry, 'entry', 'create-entry' if not entry.get('id') else 'edit') }}" method="post" enctype="multipart/form-data" class="js-warn-on-unsaved-changes">
+    {{ csrfToken() | safe }}
+    
+    <div class="row">
+      <div class="col-md-12">
+        <h1 id="js-title-display"></h1>
+        
+        {% for errorMessage in errorMessages %}
+          <div class="alert alert-warning">{{ errorMessage }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="row entry">
+      <div class="col-lg-8 col-md-7">
+        <div class="form-group input-group-lg">
+          <label for="title">Titre du jeu </label>
+          <input type="text" class="form-control js-sync-text" name="title" value="{{ entry.get('title') }}" required="required"
+            data-sync-text-display-selector="#js-title-display"
+            data-sync-text-default="My {{ 'external' if external else event.get('title') }} entry"/>
+        </div>
+        <div class="form-group">
+          <label for="title">Courte description </label>
+          <input type="text" class="form-control" name="description" value="{{ entry.get('description') }}" />
+        </div>
+        
+        {% if external %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="title">Nom de l'événement externe </label>
+              <select class="form-control js-entry-external-event" name="external-event">
+                {% if entry.get('external_event') %}
+                  <option  value="{{ entry.get('external_event') }}">{{ entry.get('external_event') }}</option>
+                {% endif %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="title">Date de publication</label>
+              {{ formMacros.dateTimePicker('published-at', entry.get('published_at'), { minView: '2', momentFormat: 'YYYY-MM-DD', pickerFormat: 'yyyy-mm-dd' }) }}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% set isEntryOwner = not entry.get('id') or canUserManage(user, entry) %}
+        {% set canEditDivision = not event or ((isEntryOwner or isMod(user)) and event.get('status_entry') === 'open') %}
+        {% set divisionTooltip = 'Consultez la section Docs pour connaître les règles détaillées de chaque division.'
+          + ('Les divisions ne peuvent plus être changées.' if event.get('status_entry') !== 'open')
+          + ('Seul le propriétaire de la soumission peut modifier ce paramètre.' if not isEntryOwner and event.get('status_entry') === 'open')
+            if event %}
+
+        <label for="division">Division {{ formMacros.tooltip(divisionTooltip) if not external }}</label>
+        <div>
+          <div class="entry__divisions toggle js-entry-divisions" data-toggle="buttons"
+               data-initial-division="{{ entry.get('division') | default('solo') }}">
+            {% if not external %}
+              {% for name, description in event.get('divisions') %}
+                {{ divisionButton(name|capitalize, description, constants.DIVISION_ICONS[name], name,
+                  entry.get('division'), canEditDivision, divisionTooltip) }}
+              {% endfor %}
+            {% else %}
+              {{ divisionButton('Solo', '', constants.DIVISION_ICONS['solo'], 'solo',
+                entry.get('division'), canEditDivision, divisionTooltip) }}
+              {{ divisionButton('Team', '', constants.DIVISION_ICONS['team'], 'team', 
+                entry.get('division'), canEditDivision, divisionTooltip) }}
+            {% endif %}
+          </div>
+          
+          <div id="edit-team" class="{{ 'hidden' if entry.get('division') === 'solo' }} js-edit-entry-team"
+              data-find-team-mate-url="{{ buildUrl(event, 'event', 'ajax-find-team-mate') }}"
+              data-entry-id="{{ entry.get('id') or '' }}">
+            <div id="result-box" class="form-group" style="display:none;">
+              <h3 id="result-msg"></h3>
+              <ul id="conflict-list" style="display:none;"></ul>
+              <div id="removed-msg" style="display:none;"></div>
+              <div id="added-msg" style="display:none;"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="members">Membres de l'équipe {{ formMacros.tooltip('Vous pouvez laisser l\'équipe au bas de ce formulaire.') if not isEntryOwner }}</label>
+              <select name="members" class="bigdrop js-search-members" multiple="multiple" {{ 'readonly' if not isEntryOwner }}
+                title="{{ 'Seul le propriétaire de la soumission peut modifier ce paramètre. Vous pouvez laisser l\'équipe au bas de ce formulaire.' if not isEntryOwner }}">
+                {% for member in members %}
+                  <option value="{{ member.id }}" data-locked="{{ member.locked }}" data-invite="{{ member.invite }}" data-avatar="{{ member.avatar }}" selected>{{ member.text }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          
+          {% if not external
+              and event.related('details').get('category_titles')
+              and event.related('details').get('category_titles').includes('Graphics') %}
+            {% set canEditOptouts = isEntryOwner or isMod(user) %}
+            {% set optouts = entryDetails.get('optouts') %}
+            <div id="edit-optouts" class="{{ 'hidden' if entry.get('division') === 'unranked' }}">
+              <div class="form-group" title="{{ 'Only the entry owner can change this setting' if not canEditOptouts }}">
+                <label>Opt-outs</label>
+                <div>
+                  <label style="font-weight: normal">
+                    <input type="checkbox" name="optout-graphics" class="js-checkbox"
+                    {{ 'readonly' if not canEditOptouts }}
+                    {{ 'checked="checked"' if optouts and optouts.includes('Graphics') }} 
+                    {{ 'disabled' if not canEditOptouts }} />
+                    Désactiver les évaluations pour les graphiques
+                  </label>
+                </div>
+                <div>
+                  <label style="font-weight: normal">
+                    <input type="checkbox" name="optout-audio" class="js-checkbox"
+                    {{ 'readonly' if not canEditOptouts }}
+                    {{ 'checked="checked"' if optouts and optouts.includes('Audio') }}
+                    {{ 'disabled' if not canEditOptouts }} />
+                    Désactiver les évaluations pour l'audio
+                  </label>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="horizontal-bar" style="margin-top: 40px">Détails</div>
+
+        <div class="form-group">
+          <label>Liens</label>
+          <div class="js-links" data-entry-links="{{ entry.get('links') | default([]) | dump }}">
+            <!-- No-JavaScript link support -->
+            <input type="hidden" name="submit-links" value="true" />
+            {% set linkCount = entry.get('links').length if (entry.get('links').length > 3) else 3 %}
+            {% for linkIndex in range(0, linkCount) %}
+              {% set link = entry.get('links')[linkIndex] if entry.get('links').length > linkIndex else {} %}
+              <div class="row" style="margin-bottom: 5px">
+                <div class="col-xs-3">
+                  <input type="text" name="label{{ loop.index0 }}" class="js-link-label form-control" placeholder="Label" value="{{ link.label }}" />
+                </div>
+                <div class="col-xs-8">
+                  <input type="url" class="js-link-url form-control" name="url{{ loop.index0 }}" placeholder="URL" value="{{ link.url }}">
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="body">Description détaillée</label>
+          <div class="user-contents user-contents__editor">
+            {{ formMacros.editor('body', entryDetails.get('body'), 'entry-details-' + entry.get('id')) }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="platforms">Platformes</label>
+          <select name="platforms" class="form-control js-entry-platforms" multiple="multiple">
+            {% for platform in allPlatforms %}
+              <option value="{{ platform }}" {{ 'selected' if entry.get('platforms') and entry.get('platforms').includes(platform) }}>{{ platform }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tags">Tags</label> {{ formMacros.tooltip('Utilisez ceci pour permettre aux gens de rechercher votre jeu par technologie (Unity, Game Maker...), genre (Platformer...), style (Pixel art...), etc.') }}
+          <select name="tags" class="form-control js-tags-select" multiple="multiple"
+                  data-allow-new-tags="true"
+                  data-find-tags-url="{{ buildUrl(null, 'tags', 'ajax-find-tags') }}">
+            {% for tag in tags %}
+              <option value="{{ tag.id }}" selected>{{ tag.value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="horizontal-bar" style="margin-top: 40px">Meilleurs scores</div>
+
+        <div class="form-group">
+          <label for="enable-high-score">Activer les Meilleurs scores {{ formMacros.tooltip('Les joueurs pourront soumettre leurs scores avec une capture d\'écran comme preuve.') }}</label>
+          <div>
+            {% set highScoreEnabled = entry.get('status_high_score') and entry.get('status_high_score') !== 'off' %}
+            {{ formMacros.radio('enable-high-score', 'off', 'Off', 'off' if not highScoreEnabled) }}
+            {{ formMacros.radio('enable-high-score', 'on', 'On', 'on' if highScoreEnabled) }}
+            <span class="js-high-score-details">
+            {{ formMacros.check('high-score-reversed', 'Le meuilleur score est le plus petit', entry.get('status_high_score') === 'reversed') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="js-high-score-details">
+          <div class="form-group">
+            <label for="high-score-unit">Type de score</label>
+            <div class="form-inline">
+              {% set isCustomUnit = entryDetails.get('high_score_type') and not ['number', 'time'].includes(entryDetails.get('high_score_type')) %}
+              {{ formMacros.radio('high-score-type', 'number', 'Nombre', entryDetails.get('high_score_type') or 'number') }}
+              {{ formMacros.radio('high-score-type', 'time', 'Temps', entryDetails.get('high_score_type')) }}
+              {{ formMacros.radio('high-score-type', 'custom', 'Unité personnalisée', 'custom' if isCustomUnit) }}
+              <input type="text" name="custom-unit" class="form-control js-custom-unit-input" value="{{ entryDetails.get('high_score_type') if isCustomUnit }}" size="5" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="high-score-instructions">Instructions de soumission de score {{ formMacros.tooltip('Vous pouvez utiliser ce texte pour spécifier le score à soumettre, ou le mode de jeu à utiliser, ce qui doit apparaître est la capture d\'écran de la preuve, etc.') }}</label>
+            <textarea name="high-score-instructions" class="form-control">{{ entryDetails.get('high_score_instructions') }}</textarea>
+          </div>
+        </div>
+
+        <div class="horizontal-bar" style="margin-top: 40px">Autre</div>
+
+        <div class="form-group">
+          <label for="anonymous-enabled">Options de commentaires</label>
+          <div>
+            {{ formMacros.check('anonymous-enabled', 'Autoriser les commentaires anonymes', entry.get('allow_anonymous'), { noMargin: true }) }}
+          </div>
+        </div>
+      </div>
+      
+
+      <div class="col-lg-4 col-md-5">
+        <div class="form-group">
+          <label for="title">Image</label>
+          {% if entry.picturePreviews().length > 0 %}
+            {% set picture = entry.picturePreviews()[0] %}
+          {% endif %}
+          {{ formMacros.pictureInput('picture', picture, { model: entry, legend: 'Taille Max: 2.0 MiB. ratio ideal: 16:9 (eg. 1280x720). GIFs autorisés.'}) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8 col-md-7">
+        <div class="row">
+          <div class="col-xs-6">
+            {% if entry.has('id') %}
+              {% if isEntryOwner or isMod(user) %}
+                <a class="btn btn-danger" href="{{ buildUrl(entry, 'entry', 'delete') }}" onclick="return confirm('Supprimer la soumission? Cela ne peut pas être annulé!')">Supprimer</a> 
+              {% endif %}
+              {% if not isEntryOwner %}
+                <a class="btn btn-danger" href="{{ buildUrl(entry, 'entry', 'leave') }}" onclick="return confirm('Quitter l\'équipe? Cela ne peut pas être annulé, sauf si le propriétaire de l\'équipe vous reprends!')">Quitter l'équipe</a>
+              {% endif %}
+            {% endif %}
+          </div>
+          <div class="col-xs-6 text-right">
+            <input type="submit" class="btn btn-primary" value="Sauvegarder" />
+            <a class="btn btn-default" href="#" onclick="history.back()">Annuler</a> 
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script id="js-links-template" type="text/template">
+  <input type="hidden" name="submit-links" value="true" />
+  <% for (var i in links) { %>
+    <div class="js-link" style="margin-bottom: 5px">
+        <div class="draggable" style="width: 3%; display: inline-block; cursor: pointer">
+          <span class="fas fa-bars"></span> 
+        </div>
+        <div style="width: 25%; display: inline-block">
+          <input type="text" name="label<%- i %>" class="js-link-label form-control" data-row="<%- i %>" placeholder="Label" value="<%- links[i].label %>" />
+        </div>
+        <div style="width: 64%; display: inline-block">
+          <input type="url" class="js-link-url form-control" data-row="<%- i %>" name="url<%- i %>" placeholder="URL" value="<%- links[i].url %>">
+        </div>
+        <div style="width: 5%; display: inline-block">
+          <input type="button" class="js-remove-link btn btn-sm" data-row="<%- i %>" value="x" />
+        </div>
+      </div>
+    </div>
+  <% } %>
+  <input type="button" class="js-add-link btn btn-sm" value="Ajouter lien" />
+</script>
+
+{% endblock %}
+
+{% macro divisionButton(title, legend, icon, value, currentValue, canEditDivision, tooltipMessage) %}
+  {% if canEditDivision %}
+    <label class="btn entry-division js-division-button {{ 'active' if value === currentValue }}">
+      <div class="{{ icon }}"></div>
+      <input type="radio" name="division" value="{{ value }}" autocomplete="off" {{ 'checked' if value === currentValue }}>
+      {{ title }}
+      <div class="entry-division__legend hidden-xs hidden-sm">{{ legend | safe }}</div>
+    </label>
+  {% else %}
+    <div class="btn entry-division {{ 'active' if value === currentValue else 'disabled' }}" title="{{ tooltipMessage }}">
+      <div class="{{ icon }}"></div>
+      {{ title }}
+      <div class="entry-division__legend hidden-xs hidden-sm">{{ legend | safe }}</div>
+    </div>
+  {% endif %}
+{% endmacro %}
+            
+{% block scripts %}
+{{ formMacros.editorScripts() }}
+{% endblock %}

@@ -1,0 +1,164 @@
+{% import "_macros-form.html" as formMacros %}
+
+{#
+ # Various chunks of the event edition form have been extracted here
+ # for reuse on the event templates/event presets admin forms.
+ #}
+
+{% macro linksForm (eventDetails) %}
+<div class="form-group">
+  <label for="links">Raccourcis vers la page d'accueil
+    {{ formMacros.tooltip('Doit être un tableau de liens JSON valide, eg. [\{ "title": "Event rules", "link": "/post/123", "icon": "fa-question-circle" \}]') }}</label>
+  <textarea name="links"
+    class="codemirror auto-height">{{ (eventDetails.get('links') if eventDetails else []) | pretty }}</textarea>
+</div>
+{% endmacro %}
+
+{% macro countdownForm (event, options = {}) %}
+<div class="horizontal-bar">
+  Page d'accueil
+</div>
+
+<div class="form-group">
+  <label>Appel à l'action</label>
+  <div class="form-inline">
+    Message
+    <input type="text" class="form-control" style="min-width: 250px" name="countdown-message"
+      value="{{ event.get('countdown_config').message if event }}" />
+    Lien
+    {{ formMacros.tooltip('Parmi "themes", "postes", "jeux", "resultas", ou un chemin absolu comme "/post/create"')}}
+    <input type="text" class="form-control" name="countdown-link"
+      value="{{ event.get('countdown_config').link if event }}" />
+  </div>
+</div>
+<div class="form-group">
+  <label>Prochain deadline</label>
+  <div class="form-inline">
+    Phrase
+    {{ formMacros.tooltip('Par exemple: "fini", "le vote commence"... ou directement "commence le 31 janvier" si la date n\'est pas réglée.') }}
+    <input type="text" class="form-control" name="countdown-phrase"
+      value="{{ event.get('countdown_config').phrase if event }}" />
+    {% if options.countdownOffset %}
+    Décalage du début
+    <input type="text" name="countdown-offset-d" class="form-control" style="width: 50px"
+      value="{{ options.countdownOffset.d or '0' }}" />d
+    <input type="text" name="countdown-offset-h" class="form-control" style="width: 50px"
+      value="{{ options.countdownOffset.h or '0' }}" />h
+    <input type="text" name="countdown-offset-m" class="form-control" style="width: 50px"
+      value="{{ options.countdownOffset.m or '0' }}" />m
+    &nbsp;
+    {% else %}
+    Date (<a href="https://www.timeanddate.com/worldclock/algeria/algiers" target="_blank"></a>)
+    {{ formMacros.dateTimePicker('countdown-date', event.get('countdown_config').date if event) }}
+    {% endif %}
+    <label><input type="checkbox" class="form-control js-checkbox" name="countdown-enabled"
+        {{ 'checked="checked"' if event and event.get('countdown_config').enabled }} />
+    Compte à rebours animé</label>
+  </div>
+</div>
+
+{% endmacro %}
+
+{% macro stateForm (event) %}
+
+<div class="horizontal-bar">Global</div>
+
+<div class="form-group">
+  <label for="status">Statut global</label>
+  <div>
+    {{ formMacros.radio('status', 'pending', 'Planifié ', 
+      event.get('status') if event else 'pending') }}
+    {{ formMacros.radio('status', 'open', 'En cours', 
+      event.get('status') if event) }}
+    {{ formMacros.radio('status', 'closed', 'Cloturé', 
+      event.get('status') if event) }}
+  </div>
+</div>
+
+<div id="js-edit-event-status-jam">
+  <div class="horizontal-bar">Compétition des jeux</div>
+  <div class="form-group">
+    <label for="status-theme">Statut du vote par thème</label>
+    <div>
+      {{ formMacros.radio('status-theme', 'disabled', 'Désactivé', 
+        event.get('status_theme') if event else 'disabled') }}
+      {{ formMacros.radio('status-theme', 'off', 'Off', 
+        event.get('status_theme') if event) }}
+      {{ formMacros.radio('status-theme', 'voting', 'Vote', 
+        event.get('status_theme') if event) }}
+      {{ formMacros.radio('status-theme', 'shortlist', 'Liste restreinte', 
+        event.get('status_theme') if event) }}
+      {{ formMacros.radio('status-theme', 'closed', 'Cloturé', 
+        event.get('status_theme') if event) }}
+      {{ formMacros.radio('status-theme', 'results', 'Résultats', 
+        event.get('status_theme') if event) }}
+      {{ formMacros.radio('status-theme', '', '', 
+        event.get('status_theme') if event, { textField: true, placeholder: 'Post ID', textFieldEnabled: isId(event.get('status_theme')) if event }) }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="status-entry">Statut de soumission</label>
+    <div>
+      {{ formMacros.radio('status-entry', 'off', 'Off', 
+        event.get('status_entry') if event else 'off') }}
+      {{ formMacros.radio('status-entry', 'open', 'En cours',
+        event.get('status_entry') if event) }}
+      {{ formMacros.radio('status-entry', 'open_unranked', 'En cours (non classé uniquement)',
+        event.get('status_entry') if event) }}
+      {{ formMacros.radio('status-entry', 'closed', 'Cloturé',
+        event.get('status_entry') if event) }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="status-results">Etat des résultats de l'événement</label>
+    <div>
+      {{ formMacros.radio('status-results', 'disabled', 'Désactivé',
+        event.get('status_results') if event else 'disabled') }}
+      {{ formMacros.radio('status-results', 'off', 'Off',
+        event.get('status_results') if event) }}
+      {{ formMacros.radio('status-results', 'voting', 'Vote', 
+        event.get('status_results') if event) }}
+      {{ formMacros.radio('status-results', 'voting_rescue', 'Vote (sauver)', 
+        event.get('status_results') if event) }}
+      {{ formMacros.radio('status-results', 'results', 'Résultats', 
+        event.get('status_results') if event) }}
+      {{ formMacros.radio('status-results', '', '', 
+        event.get('status_results') if event, { textField: true, placeholder: 'Post ID', textFieldEnabled: isId(event.get('status_results')) if event}) }}
+    </div>
+  </div>
+</div>
+
+<div id="js-appearance" class="form-group">
+  <div class="horizontal-bar">Tournoi</div>
+  <label for="status-theme">Statut du tournoi</label>
+  <div>
+    {{ formMacros.radio('status-tournament', 'disabled', 'Désactivé', 
+      event.get('status_tournament') if event else 'disabled') }}
+    {{ formMacros.radio('status-tournament', 'off', 'Off', 
+      event.get('status_tournament') if event) }}
+    {{ formMacros.radio('status-tournament', 'submission', 'Soumission', 
+      event.get('status_tournament') if event) }}
+    {{ formMacros.radio('status-tournament', 'playing', 'En cours', 
+      event.get('status_tournament') if event) }}
+    {{ formMacros.radio('status-tournament', 'closed', 'Cloturé', 
+      event.get('status_tournament') if event) }}
+    {{ formMacros.radio('status-tournament', 'results', 'Résultats du tournoi', 
+      event.get('status_tournament') if event) }}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro jamConfigForm(event, eventDetails) %}
+<div class="form-group">
+  <label for="divisions">Divisions
+    {{ formMacros.tooltip('Doit être un objet JSON valide, avec les clés comme nom (parmi: solo,équipe,classé,non classé) et valorise la description.') }}</label>
+  <textarea name="divisions"
+    class="codemirror auto-height">{{ (event.get('divisions') if event else []) | pretty }}</textarea>
+</div>
+<div class="form-group">
+  <label for="category-titles">Catégories de notation
+    {{ formMacros.tooltip('Doit être un tableau JSON de chaînes valide, eg. ["General","Theme"]') }}</label>
+  <textarea name="category-titles"
+    class="codemirror auto-height">{{ (eventDetails.get('category_titles') if eventDetails else []) | dump }}</textarea>
+</div>
+{% endmacro %}

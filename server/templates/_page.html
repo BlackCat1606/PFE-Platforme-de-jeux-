@@ -1,0 +1,185 @@
+{% import "admin/_macros-admin.html" as adminMacros %}
+{% import "event/_macros-event.html" as eventMacros %}
+
+{% macro userMenu(user, unreadNotifications) %}
+<div href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+  <a class="navbar-avatar-wrapper" href="{{ buildUrl(user, 'user', 'feed') }}" onclick="arguments[0].stopPropagation()">
+    {% if user.get('avatar') %}
+    <img src="{{ pictureUrl(user.get('avatar'), user) }}" class="navbar-avatar" />
+    {% else %}
+    <img src="{{ staticUrl('/static/images/default-avatar.png') }}" class="navbar-avatar" />
+    {% endif %}
+    <div class="navbar-unread-notifications {{ 'unread' if (unreadNotifications > 0) }}">
+      {{ unreadNotifications }}
+    </div>
+  </a>
+  <span class="navbar-profile hidden-xs hidden-sm hidden-md">{{ user.get('title') }}</span> <span
+    class="caret hidden-xs"></span>
+</div>
+<ul class="dropdown-menu">
+  <li><a href="{{ buildUrl(user, 'user', 'feed') }}">Tableau de bord</a></li>
+  <li><a href="{{ buildUrl(user, 'user') }}">Profil</a></li>
+  <li><a href="{{ buildUrl(user, 'user', 'entries') }}">Mes soumissions</a></li>
+  <li class="divider"></li>
+  <li><a href="{{ buildUrl(null, 'post', 'create') }}">Publier</a></li>
+  <li><a href="{{ buildUrl(user, 'user', 'posts') }}">Mes publications</a></li>
+  <li class="divider"></li>
+  <li><a href="{{ buildUrl(user, 'user', 'scores') }}">Mes scores</a></li>
+  <li class="divider"></li>
+  <li><a href="/logout">Se déconnecter</a></li>
+</ul>
+{% endmacro %}
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  {% set pageTitle = (pageTitle + ' | ' if pageTitle) + 'CNPSR!' %}
+  {% set pageDescription = pageDescription if pageDescription else 'une communauté pour les bénévoles des jeux éducatifs.' %}
+
+  <title>{{ pageTitle }}</title>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@cnpsr_dz" />
+  <meta name="twitter:title" content="{{ pageTitle if pageTitle else 'CNPSR!' }}" />
+  <meta name="twitter:description" content="{{ pageDescription | truncate(160) }}" />
+  <meta name="twitter:image" content="{{ pageImage if pageImage else staticUrl('/static/images/logo.png') }}" />
+  <meta property="og:title" content="{{ pageTitle if pageTitle else 'CNPSR!' }}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{{ rootUrl }}{{ path }}" />
+  <meta property="og:image" content="{{ pageImage if pageImage else staticUrl('/static/images/logo.png') }}" />
+  <meta name="description" content="{{ pageDescription | truncate(160) }}" />
+
+  <link rel="icon" type="image/png" href="{{ staticUrl('/static/images/favicon16.png') }}" sizes="16x16" />
+  <link rel="icon" type="image/png" href="{{ staticUrl('/static/images/favicon32.png') }}" sizes="32x32" />
+  <link rel="icon" type="image/png" href="{{ staticUrl('/static/images/favicon196.png') }}" sizes="196x196" />
+  <link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet" />
+  {% block styles %}{% endblock %}
+  <link rel="stylesheet" type="text/css" href="{{ staticUrl('/dist/client/css/index.css?' + launchTime) }}" />
+  <script type="text/javascript">
+    // Google Analytics
+    {% if config.GOOGLE_ANALYTICS_ID %}
+    (function (i, s, o, g, r, a, m) {
+    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+      (i[r].q = i[r].q || []).push(arguments)
+    }, i[r].l = 1 * new Date(); a = s.createElement(o),
+      m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+    ga('create', '{{ config.GOOGLE_ANALYTICS_ID }}', { storage: 'none' });
+    ga('send', 'pageview');
+    {% endif %}
+  </script>
+</head>
+{% set inEvent = event and event.get('id') %}
+
+<body {{ 'class=in-event' if inEvent }}>
+  {% set showModerationBar = user and (user.get('is_mod') or user.get('is_admin')) %}
+
+  <nav class="navbar navbar-default navbar-fixed-top {{ 'has-event-header' if inEvent }}">
+    <div class="container">
+      {# ==== Main header (mobile) ==== #}
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse"
+          aria-expanded="false">
+          <span class="sr-only"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">
+          <div class="navbar-brand__hover"></div>
+        </a>
+
+        {% if user %}
+        <div class="visible-xs pull-right navbar-profile-mobile">
+          {{ userMenu(user, unreadNotifications) }}
+        </div>
+        {% endif %}
+      </div>
+
+      {# ==== Main header (desktop) ==== #}
+      <div class="collapse navbar-collapse" id="navbar-collapse">
+        <ul class="nav navbar-nav">
+
+          <li class="{{ 'active' if path == '/events' }}"><a href="/events">Evenements</a></li>
+          <li class="{{ 'active' if path.indexOf('/games') === 0 }}"><a href="/games">Jeux</a></li>
+
+          {% if user %}
+          <li class="{{ 'active' if path.indexOf('/people') === 0 }}"><a href="/people">Communauté</a></li>
+          <li class="hidden-xs {{ 'active' if path == '/chat' }}"><a href="/chat">Chat</a></li>
+          <li class="visible-xs {{ 'active' if path == '/logout' }}"><a href="/logout">Se déconnecter</a></li>
+          <li class="dropdown hidden-xs">
+            {{ userMenu(user, unreadNotifications) }}
+          </li>
+          {% else %}
+          <li class="nav-login"><a href="/login{{ '?redirect=' + (path|urlencode) if path !== '/logout' }}"><b>Se
+                connecter</b></a> ou <a href="/register"><b>S'inscrire</b></a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+
+    {# ==== Event header ==== #}
+    {% if inEvent %}
+    <div class="event-header">
+      <div class="container">
+        <div class="event-header__info">
+          <a href="{{ buildUrl(event, 'event', 'announcements') }}" class="event-header__name">
+            {{ event.get('title') }}
+          </a>
+          <div class="event-header__dates">
+            {{ event.get('display_dates') }}
+          </div>
+        </div>
+        <div class="event-header__links">
+          {{ eventMacros.eventLinks(event, path, { collapse: true }) }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </nav>
+
+  {% if showModerationBar %}
+  {{ adminMacros.moderationBar(context(), user.get('is_admin')) }}
+  {% endif %}
+
+  <div class="body">
+    {% block body %}{% endblock %}
+  </div>
+
+  <footer class="container">
+    <div class="row footer">
+      <div class="col-xs-6">
+      </div>
+      <div class="col-xs-6 text-right">
+        <a href="https://twitter.com/cnpsr_dz" class="footer__link">
+          <img src="{{ staticUrl('/static/images/social/black-twitter.svg') }}" class="footer__icon no-border" />
+        </a>
+        <a href="http://www.cnpsr.org.dz/default" class="footer__link">
+          <img src="{{ staticUrl('/static/images/social/logo.svg') }}" class="footer__icon no-border" />
+        </a>
+        <a href="https://www.facebook.com/cnpsr.org.dz/" class="footer__link">
+          <img src="{{ staticUrl('/static/images/social/black-facebook.svg') }}" class="footer__icon no-border" />
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="text/javascript" src="{{ staticUrl('/static/scripts/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ staticUrl('/static/scripts/jquery.lazy.min.js') }}"></script>
+  <script type="text/javascript" src="{{ staticUrl('/static/scripts/bootstrap.min.j') }}s"></script>
+  <script type="text/javascript" src="{{ staticUrl('/static/scripts/bootstrap-datetimepicker.min.js') }}"></script>
+  <script type="text/javascript" src="{{ staticUrl('/static/scripts/icheck.min.js') }}"></script>
+  <script type="text/javascript" src="{{ staticUrl('/static/scripts/select2.full.min.js') }}"></script>
+  <script type="text/javascript" src="{{ staticUrl('/static/scripts/lodash.min.js') }}"></script>
+  <script type="text/javascript" src="{{ staticUrl('/static/scripts/tablesort-number-date.min.js') }}"></script>
+  {% if browserRefreshUrl %}
+  <script src="{{ browserRefreshUrl }}"></script>
+  {% endif %}
+  <script type="text/javascript" src="{{ staticUrl('/dist/client/scripts/site.js?' + launchTime) }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>

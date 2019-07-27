@@ -1,0 +1,39 @@
+{
+  "home": "/",
+  "events": "/events",
+  "games": "/games",
+  "people": "/people",
+  "people-mods": "/people/mods",
+  "chat": "/chat",
+  "changelog": "/changes",
+  "docs-home": "/article/docs",
+
+  "register": "/register",
+  "login": "/login",
+  "password-recovery-request": "/passwordRecoveryRequest",
+
+  "user-profile": "/user/administrator",
+
+  "api-home": "/api",
+  "api-events-example": "/api/event?pretty=true",
+
+  "post": "/post/1/plog-post",
+
+  "event": "/submissions-open",
+  "event-news": "/submissions-open/announcements",
+  "event-posts": "/submissions-open/posts",
+  "event-theme-voting": "/theme-voting/themes",
+  "event-theme-shortlist": "/theme-shortlist/themes",
+  "event-entries": "/submissions-open/games",
+  "event-results": "/results-out/results?sortBy=1&division=solo",
+  "event-results-unranked": "/results-out/results?sortBy=1&division=unranked",
+
+  "entry-view": "/submissions-open/4/my-game/",
+  "entry-view-external": "/external-entry/5/my-external-entry/",
+  "entry-scores": "/external-entry/5/my-external-entry/scores",
+  "entry-rate": "/game-ratings/8/rate-me/",
+  "entry-with-team": "/game-ratings/11/team-game/",
+
+  "tournament-games": "/live-tournament/tournament-games",
+  "tournament-leaderboard": "/live-tournament/tournament-leaderboard"
+}

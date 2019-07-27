@@ -1,0 +1,80 @@
+{% extends "admin/_page-admin.html" %}
+{% import "event/_macros-edit-event.html" as editEventMacros %}
+{% import "_macros-form.html" as formMacros %}
+
+{% block adminBody %}
+
+<h1>Modèles d'événement</h1>
+
+{% if not editEventTemplate %}
+  <p>Ces modèles permettent de créer un événement avec des valeurs par défaut plus sensibles.</p>
+
+  <p>
+    <a href="?create" class="btn btn-primary">Créer</a> 
+  </p>
+{% else %}
+  <div class="well">
+    <h2><span id="template-header"></span> modèle d'événement</h2>
+    <form method="post" action="?">
+      {{ csrfToken() | safe }}
+      <div class="form-group">
+        <label for="title">Titre</label>
+        <input type="text" required class="form-control js-sync-text" name="title" value="{{ editEventTemplate.get('title') }}"
+          data-sync-text-display-selector="#template-header" data-sync-text-default="Nouveau"  />
+      </div>
+      <div class="form-group">
+        <label for="title">Titre de l'événement par défaut</label>
+        <input type="text" class="form-control" name="event-title" value="{{ editEventTemplate.get('event_title') }}" />
+      </div>
+      <div class="form-group">
+        <label for="logo">Préréglage</label>
+        <select name="event-preset-id" class="js-select" style="width: 100%" data-placeholder="None" data-allow-clear="true">
+          <option value=""></option>
+          {% for eventPreset in eventPresets %}
+          <option value="{{ eventPreset.get('id') }}"
+              {{ 'selected' if editEventTemplate.get('event_preset_id') == eventPreset.get('id') }}>
+            {{ eventPreset.get('title') }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {{ editEventMacros.linksForm(editEventTemplate) }}
+      {{ editEventMacros.jamConfigForm(editEventTemplate, editEventTemplate) }}
+      <div class="form-group">
+        {% if editEventTemplate.get('id') %}
+          <div class="pull-right">
+            <input type="hidden" name="id" value="{{ editEventTemplate.get('id') }}" />
+            <button type="submit" class="btn btn-danger" name="delete" onclick="return confirm('Delete this template?')">Supprimer</button>
+          </div>
+        {% endif %}
+        <button name="save" type="submit" class="btn btn-primary">Sauvegarder</button>
+        <a href="?" class="btn btn-default">Annuler</a>
+      </div>
+    </form>
+  </div>
+{% endif %}
+
+<table class="table">
+<thead>
+<tr>
+  <th>Titre</th>
+  <th style="width: 100px">Actions</th>
+</tr>
+</thead>
+<tbody>
+{% for eventTemplate in eventTemplates %}
+<tr>
+  <td>{{ eventTemplate.get('title') }}</td>
+  <td>
+    <a href="?edit={{ eventTemplate.get('id') }}" class="btn btn-primary">Modifier</a>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% endblock %}
+
+{% block scripts %} 
+{{ formMacros.codeMirrorScripts() }}
+{% endblock %}

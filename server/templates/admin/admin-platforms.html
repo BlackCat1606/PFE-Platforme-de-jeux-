@@ -1,0 +1,56 @@
+{% extends "admin/_page-admin.html" %}
+{% import "_macros-form.html" as formMacros %}
+{% import "event/_macros-event.html" as eventMacros %}
+
+{% block adminBody %}
+
+<h1>Platformes</h1>
+
+{% if editPlatform %}
+<form action="/admin/platforms" method="post">
+  {{ csrfToken() | safe }}
+  <div class="form-group">
+    <label for="id">ID</label>
+    <p>{{ editPlatform.get('id') or 'N.A.' }}</p>
+    <input type="hidden" name="id" value="{{ editPlatform.get('id') }}" />
+  </div>
+  <div class="form-group">
+    <label for="name">Nom</label>
+    <input type="text" name="name" value="{{ editPlatform.get('name') }}" class="form-control" />
+  </div>
+  <div class="form-group">
+    <input type="submit" class="btn btn-primary" value="Sauvegarder" />
+    <a href="?" class="btn btn-default">Annuler</a>
+  </div>
+</form>
+{% else %}
+  <p><a class="btn btn-default" href="?create=true">Créer une plateforme</a></p>
+{% endif %}
+
+<table class="table">
+<thead>
+  <th>ID</th>
+  <th>Nom</th>
+  <th>Nombre de soumissions</th>
+  <th>Actions</th>
+</thead>
+<tbody>
+  {% for platform in platforms %}
+  <tr>
+    <td>{{ platform.get('id') }}</td>
+    <td>{{ eventMacros.entryPlatformIcon(platform.get('name')) }}</td>
+    <td>{{ entryCount[platform.get('id')] }}</td>
+    <td>
+      <a class="btn btn-primary btn-sm" href="?edit={{ platform.get('id') }}">Modifier</a>
+      {% if entryCount[platform.get('id')] === 0 %}
+        <a class="btn btn-danger btn-sm" href="?delete={{ platform.get('id') }}" onclick="return confirm('Cela ne peut pas étre annulé. Continuer?')">Supprimer</a>
+      {% else %}
+        <span class="btn btn-danger btn-sm disabled">Supprimer</span> {{ formMacros.tooltip('Les platesformes utilisées par les soumissions ne peuvent pas être supprimées. Exécuter des requêtes de base de données manuelles pour résoudre ce problème avant la suppression.') }}
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+
+{% endblock %}
