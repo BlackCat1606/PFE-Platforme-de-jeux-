@@ -8,5 +8,5 @@ Ouvrez la ligne de commande dans le répertoire du projet et Lancez les commande
 3. Sur le navigateur allez à `http://localhost:8000`
 4. Vous pouvez vous connecter en tant que : nom d'utilisateur:  administrator ; mot de passe: administrator
 
-> (*) Si `npm install --no-optional` a des problémes avec `sqlite3`, essayez la commande avec `--build-from-source`.
+> (*) Si `npm install --no-optional` a des problémes avec `sqlite3`, essayez la commande avec le flag :`--build-from-source`.
 
