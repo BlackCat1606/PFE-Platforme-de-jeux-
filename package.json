@@ -80,7 +80,7 @@
     "remove-markdown": "^0.2.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
-    "sanitize-html": "^1.20.0",
+    "sanitize-html": "^2.3.2",
     "showdown": "^1.9.0",
     "slug": "^0.9.3",
     "sortablejs": "^1.8.1",
